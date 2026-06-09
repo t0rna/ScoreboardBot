@@ -14,10 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ScheduleFormatter
 {
@@ -673,7 +670,7 @@ public class ScheduleFormatter
 
     public String locationNote(ScheduleGame game) throws Exception
     {
-        if(game.gameType().equalsIgnoreCase("S"))
+        if(game.gameType().equalsIgnoreCase("S") || game.gameType().equalsIgnoreCase("E"))
         {
             if(game.home().teamInfo().springPark() != game.venueId())
             {
@@ -683,12 +680,11 @@ public class ScheduleFormatter
                 JSONObject root = new JSONObject(json);
                 JSONArray venues = root.getJSONArray("venues");
                 JSONObject venue = venues.getJSONObject(0);
-                String country = venue.getString("country");
-                if(country.equalsIgnoreCase("USA"))
-                {
-                    return "(Game in " + venue.getString("city") + ", " + venue.getString("stateAbbrev") + ")";
-                }
-                return "(Game in " + venue.getString("city") + ", " + country + ")";
+                JSONObject location = venue.getJSONObject("location");
+                String country = location.getString("country");
+                String city = location.getString("city");
+                String state = country.equalsIgnoreCase("USA") ? location.getString("stateAbbrev") : null;
+                return "(Game in " + city + ", " + Objects.requireNonNullElse(state, country) + ")";
             }
         }
         else if(game.gameType().equalsIgnoreCase("R"))
@@ -701,12 +697,11 @@ public class ScheduleFormatter
                 JSONObject root = new JSONObject(json);
                 JSONArray venues = root.getJSONArray("venues");
                 JSONObject venue = venues.getJSONObject(0);
-                String country = venue.getString("country");
-                if(country.equalsIgnoreCase("USA"))
-                {
-                    return "(Game in " + venue.getString("city") + ", " + venue.getString("stateAbbrev") + ")";
-                }
-                return "(Game in " + venue.getString("city") + ", " + country + ")";
+                JSONObject location = venue.getJSONObject("location");
+                String country = location.getString("country");
+                String city = location.getString("city");
+                String state = country.equalsIgnoreCase("USA") ? location.getString("stateAbbrev") : null;
+                return "(Game in " + city + ", " + Objects.requireNonNullElse(state, country) + ")";
             }
         }
         return null;
