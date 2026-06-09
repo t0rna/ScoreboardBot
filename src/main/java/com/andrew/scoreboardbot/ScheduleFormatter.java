@@ -2,7 +2,15 @@ package com.andrew.scoreboardbot;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -31,7 +39,7 @@ public class ScheduleFormatter
         return "⚾ " + mlbEmoji + " " + leftLeagueEmoji + " " + date.format(DateTimeFormatter.ofPattern("MMMM d")) + " " + rightLeagueEmoji + " \uD83D\uDCC5 ⚾";
     }
 
-    public FormattedGameMessage formatGame(ScheduleGame game, String probableLineOverride)
+    public FormattedGameMessage formatGame(ScheduleGame game, String probableLineOverride) throws Exception
     {
         String sectionHeader = formatSectionHeader(game);
 
@@ -67,7 +75,7 @@ public class ScheduleFormatter
         return "```" + game.awayProbable().formatLine() + " vs " + game.homeProbable().formatLine() + "```";
     }
 
-    public FormattedGameMessage formatGame(ScheduleGame game)
+    public FormattedGameMessage formatGame(ScheduleGame game) throws Exception
     {
         return formatGame(game, null);
     }
@@ -299,7 +307,7 @@ public class ScheduleFormatter
         return "<t:" + epochSeconds + ":R>";
     }
 
-    private String formatMatchupLine(ScheduleGame game)
+    private String formatMatchupLine(ScheduleGame game) throws Exception
     {
         ScheduleGame.TeamSnapshot away = game.away();
         ScheduleGame.TeamSnapshot home = game.home();
@@ -336,6 +344,9 @@ public class ScheduleFormatter
 
         sb.append(splitSquadSuffix(home))
                 .append(" ");
+
+        String location = locationNote(game);
+        if(location != null) sb.append(location).append(" ");
 
         if(shouldShowStartTime(game))
         {
@@ -656,7 +667,85 @@ public class ScheduleFormatter
         return "<@&" + teamInfo.role().getId() + ">";
     }
 
-    public String renderGameContent(ScheduleGame game) { return formatGame(game).content(); }
+    public String renderGameContent(ScheduleGame game) throws Exception { return formatGame(game).content(); }
 
-    public String renderGameContent(ScheduleGame game, String probableLineOverride) { return formatGame(game, probableLineOverride).content(); }
+    public String renderGameContent(ScheduleGame game, String probableLineOverride) throws Exception { return formatGame(game, probableLineOverride).content(); }
+
+    public String locationNote(ScheduleGame game) throws Exception
+    {
+        if(game.gameType().equalsIgnoreCase("S"))
+        {
+            if(game.home().teamInfo().springPark() != game.venueId())
+            {
+                int id = game.venueId();
+                String url = "https://statsapi.mlb.com/api/v1/venues?venueIds=" + id + "&hydrate=location";
+                String json = readUrl(url);
+                JSONObject root = new JSONObject(json);
+                JSONArray venues = root.getJSONArray("venues");
+                JSONObject venue = venues.getJSONObject(0);
+                String country = venue.getString("country");
+                if(country.equalsIgnoreCase("USA"))
+                {
+                    return "(Game in " + venue.getString("city") + ", " + venue.getString("stateAbbrev") + ")";
+                }
+                return "(Game in " + venue.getString("city") + ", " + country + ")";
+            }
+        }
+        else if(game.gameType().equalsIgnoreCase("R"))
+        {
+            if(game.home().teamInfo().homePark() != game.venueId())
+            {
+                int id = game.venueId();
+                String url = "https://statsapi.mlb.com/api/v1/venues?venueIds=" + id + "&hydrate=location";
+                String json = readUrl(url);
+                JSONObject root = new JSONObject(json);
+                JSONArray venues = root.getJSONArray("venues");
+                JSONObject venue = venues.getJSONObject(0);
+                String country = venue.getString("country");
+                if(country.equalsIgnoreCase("USA"))
+                {
+                    return "(Game in " + venue.getString("city") + ", " + venue.getString("stateAbbrev") + ")";
+                }
+                return "(Game in " + venue.getString("city") + ", " + country + ")";
+            }
+        }
+        return null;
+    }
+
+    private String readUrl(String urlString) throws Exception
+    {
+        int attempts = 3;
+        for(int attempt = 1; attempt <= attempts; attempt++)
+        {
+            try
+            {
+                URL url = URI.create(urlString).toURL();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(10000);
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("User-Agent", "ScoreboardBot/1.0");
+
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)))
+                {
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+
+                    while((line = reader.readLine()) != null)
+                    {
+                        sb.append(line);
+                    }
+                    return sb.toString();
+                }
+            }
+            catch(Exception e)
+            {
+                if(attempt == attempts) throw e;
+                System.err.println("MLB API request failed, retrying attempt " + (attempt + 1) + "/" +attempts + ": " + e.getMessage());
+                Thread.sleep(1000L * attempt);
+            }
+        }
+        throw new IllegalStateException("Unreachable readUrl failure");
+    }
 }

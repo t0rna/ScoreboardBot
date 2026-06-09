@@ -92,6 +92,9 @@ public class MlbApiClient
             String disruptionReason = parseDisruptionReason(game);
             LocalDate originalDate = parseOriginalDate(game);
 
+            String venue = game.getJSONObject("venue").getString("name");
+            int venueId = game.getJSONObject("venue").getInt("id");
+
             games.add(new ScheduleGame(
                     gamePk,
                     gameDate,
@@ -113,7 +116,8 @@ public class MlbApiClient
                     numberInSeries,
                     makeupDate,
                     disruptionReason,
-                    originalDate
+                    originalDate,
+                    venueId
             ));
         }
         regionalOrNationalFox(games);

@@ -24,7 +24,8 @@ public record ScheduleGame(
         int numberInSeries,
         LocalDate makeupDate,
         String disruptionReason,
-        LocalDate originalDate
+        LocalDate originalDate,
+        int venueId
 )
 {
 
