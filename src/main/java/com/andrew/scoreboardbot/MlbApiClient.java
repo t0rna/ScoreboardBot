@@ -15,6 +15,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MlbApiClient
 {
@@ -29,7 +30,7 @@ public class MlbApiClient
         return parseSchedule(json);
     }
 
-    public List<ScheduleGame> parseSchedule(String json) throws JSONException
+    public List<ScheduleGame> parseSchedule(String json) throws Exception
     {
         JSONObject root = new JSONObject(json);
         JSONArray dates = root.getJSONArray("dates");
@@ -93,7 +94,24 @@ public class MlbApiClient
             LocalDate originalDate = parseOriginalDate(game);
 
             String venue = game.getJSONObject("venue").getString("name");
-            int venueId = game.getJSONObject("venue").getInt("id");
+            int expectedVenueId = gameType.equalsIgnoreCase("S") ? home.getJSONObject("springVenue").getInt("id") : home.getJSONObject("venue").getInt("id");
+            int actualVenueId = game.getJSONObject("venue").getInt("id");
+
+            String location = null;
+
+            if(expectedVenueId != actualVenueId)
+            {
+                String url = "https://statsapi.mlb.com/api/v1/venues?venueIds=" + actualVenueId + "&hydrate=location";
+                String venueJson = readUrl(url);
+                JSONObject venueJsonRoot = new JSONObject(venueJson);
+                JSONArray venues = venueJsonRoot.getJSONArray("venues");
+                JSONObject venueObject = venues.getJSONObject(0);
+                JSONObject locationObject = venueObject.getJSONObject("location");
+                String country = locationObject.getString("country");
+                String city = locationObject.getString("city");
+                String state = country.equalsIgnoreCase("USA") ? locationObject.getString("stateAbbrev") : null;
+                location = "(Game in " + city + ", " + Objects.requireNonNullElse(state, country) + ")";
+            }
 
             games.add(new ScheduleGame(
                     gamePk,
@@ -117,7 +135,7 @@ public class MlbApiClient
                     makeupDate,
                     disruptionReason,
                     originalDate,
-                    venueId
+                    location
             ));
         }
         regionalOrNationalFox(games);

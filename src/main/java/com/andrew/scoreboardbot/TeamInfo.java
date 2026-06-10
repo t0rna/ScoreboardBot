@@ -12,9 +12,7 @@ public record TeamInfo(
     CustomEmoji emoji,
     Roles role,
     boolean external,
-    String abbreviation,
-    int homePark,
-    int springPark
+    String abbreviation
 )
 {
 
