@@ -94,7 +94,7 @@ public class MlbApiClient
             LocalDate originalDate = parseOriginalDate(game);
 
             String venue = game.getJSONObject("venue").getString("name");
-            int expectedVenueId = gameType.equalsIgnoreCase("S") ? home.getJSONObject("springVenue").getInt("id") : home.getJSONObject("venue").getInt("id");
+            int expectedVenueId = gameType.equalsIgnoreCase("S") || gameType.equalsIgnoreCase("E") ? home.getJSONObject("springVenue").getInt("id") : home.getJSONObject("venue").getInt("id");
             int actualVenueId = game.getJSONObject("venue").getInt("id");
 
             String location = null;
