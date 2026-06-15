@@ -554,6 +554,8 @@ public class ScheduleFormatter
         if(name == null) return "";
 
         String normalized = name.trim().toLowerCase();
+        if(normalized.contains("abc"))
+            return jda.getEmojiById(1259969902501040129L).getAsMention();
         if(normalized.contains("espn"))
             return jda.getEmojiById(1259969905185525910L).getAsMention();
         if(normalized.equals("fox") || normalized.startsWith("fox "))
@@ -576,8 +578,6 @@ public class ScheduleFormatter
             return jda.getEmojiById(1460862186850357376L).getAsMention();
         if(normalized.contains("nbc"))
             return jda.getEmojiById(1460862093430624436L).getAsMention();
-        if(normalized.contains("abc"))
-            return jda.getEmojiById(1259969902501040129L).getAsMention();
         return name;
     }
 
