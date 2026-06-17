@@ -36,7 +36,7 @@ public class ScheduleFormatter
         return "⚾ " + mlbEmoji + " " + leftLeagueEmoji + " " + date.format(DateTimeFormatter.ofPattern("MMMM d")) + " " + rightLeagueEmoji + " \uD83D\uDCC5 ⚾";
     }
 
-    public FormattedGameMessage formatGame(ScheduleGame game, String probableLineOverride)
+    public FormattedGameMessage formatGame(ScheduleGame game, String probableLineOverride) throws Exception
     {
         String sectionHeader = formatSectionHeader(game);
 
@@ -72,12 +72,12 @@ public class ScheduleFormatter
         return "```" + game.awayProbable().formatLine() + " vs " + game.homeProbable().formatLine() + "```";
     }
 
-    public FormattedGameMessage formatGame(ScheduleGame game)
+    public FormattedGameMessage formatGame(ScheduleGame game) throws Exception
     {
         return formatGame(game, null);
     }
 
-    private String formatSuspendedGameMatchupLine(ScheduleGame game)
+    private String formatSuspendedGameMatchupLine(ScheduleGame game) throws Exception
     {
         String awayRole = roleMention(game.away().teamInfo());
         String homeRole = roleMention(game.home().teamInfo());
@@ -85,10 +85,18 @@ public class ScheduleFormatter
         String awayEmoji = emoji(game.away().teamInfo());
         String homeEmoji = emoji(game.home().teamInfo());
 
-        String awayScore = game.away().score() != null ? String.valueOf(game.away().score()) : "0";
-        String homeScore = game.home().score() != null ? String.valueOf(game.home().score()) : "0";
+        String json = MlbApiClient.readUrl("https://statsapi.mlb.com/api/v1.1/game/" + game.gamePk() + "/feed/live");
+        JSONObject root = new JSONObject(json);
+        JSONObject linescore = root.getJSONObject("liveData").getJSONObject("linescore");
+        JSONObject teams = linescore.getJSONObject("teams");
 
-        return awayRole + " " + awayEmoji + " " + awayScore + "\n" + homeRole + " " +  homeEmoji + " " + homeScore;
+        String awayScore = String.valueOf(teams.getJSONObject("away").optInt("runs", 0));
+        String homeScore = String.valueOf(teams.getJSONObject("home").optInt("runs", 0));
+
+        String outs = String.valueOf(linescore.getInt("outs"));
+        String inning = linescore.getString("inningHalf") + " " + linescore.getInt("currentInning");
+
+        return awayRole + " " + awayEmoji + " " + awayScore + "\n" + homeRole + " " +  homeEmoji + " " + homeScore + "\n" + outs + " out - " + inning;
     }
 
     private String formatSuspendedGameDetailLine(ScheduleGame game)
@@ -666,7 +674,7 @@ public class ScheduleFormatter
         return "<@&" + teamInfo.role().getId() + ">";
     }
 
-    public String renderGameContent(ScheduleGame game) { return formatGame(game).content(); }
+    public String renderGameContent(ScheduleGame game) throws Exception { return formatGame(game).content(); }
 
-    public String renderGameContent(ScheduleGame game, String probableLineOverride) { return formatGame(game, probableLineOverride).content(); }
+    public String renderGameContent(ScheduleGame game, String probableLineOverride) throws Exception { return formatGame(game, probableLineOverride).content(); }
 }

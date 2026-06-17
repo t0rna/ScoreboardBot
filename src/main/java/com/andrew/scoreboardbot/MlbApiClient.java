@@ -357,7 +357,7 @@ public class MlbApiClient
         return new ProbablePitcherInfo(id, fullName, wins, losses, era);
     }
 
-    private String readUrl(String urlString) throws Exception
+    public static String readUrl(String urlString) throws Exception
     {
         int attempts = 3;
         for(int attempt = 1; attempt <= attempts; attempt++)

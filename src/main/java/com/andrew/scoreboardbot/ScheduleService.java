@@ -59,10 +59,16 @@ public class ScheduleService
 
         boolean springTraining = finalGames.stream().allMatch(g -> g.gameType().equalsIgnoreCase("S") || g.gameType().equalsIgnoreCase("E"));
 
-        channel.sendMessage(formatter.formatDateHeader(date, springTraining)).queue(success -> { sendGamesSequentially(channel, finalGames, date, 0); });
+        channel.sendMessage(formatter.formatDateHeader(date, springTraining)).queue(success -> {
+            try {
+                sendGamesSequentially(channel, finalGames, date, 0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
-    private void sendGamesSequentially(TextChannel channel, List<ScheduleGame> games, LocalDate date, int index)
+    private void sendGamesSequentially(TextChannel channel, List<ScheduleGame> games, LocalDate date, int index) throws Exception
     {
         if(index >= games.size())
             return;
@@ -72,22 +78,30 @@ public class ScheduleService
 
         channel.sendMessage(formattedGame.content()).queue(sentMessage ->
         {
-            messageRepository.save(new PostedGameState(
-                    game.gamePk(),
-                    sentMessage.getIdLong(),
-                    channel.getIdLong(),
-                    date,
-                    game.awayProbableName(),
-                    game.homeProbableName(),
-                    game.detailedState(),
-                    formatter.renderGameContent(game),
-                    formatter.formatProbableLine(game)
-            ));
+            try {
+                messageRepository.save(new PostedGameState(
+                        game.gamePk(),
+                        sentMessage.getIdLong(),
+                        channel.getIdLong(),
+                        date,
+                        game.awayProbableName(),
+                        game.homeProbableName(),
+                        game.detailedState(),
+                        formatter.renderGameContent(game),
+                        formatter.formatProbableLine(game)
+                ));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             System.out.println("SAVED POSTED STATE gamePk=" + game.gamePk()
                     + " channelId=" + channel.getIdLong()
                     + " date=" + date
                     + " totalForDate=" + messageRepository.findByDate(date).size());
-            sendGamesSequentially(channel, games, date, index + 1);
+            try {
+                sendGamesSequentially(channel, games, date, index + 1);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
 }
