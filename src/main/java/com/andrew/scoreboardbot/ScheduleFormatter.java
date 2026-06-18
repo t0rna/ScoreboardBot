@@ -13,6 +13,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -134,7 +135,11 @@ public class ScheduleFormatter
             return makeupDate != null ? "Postponed due to " + reason.toLowerCase() + "; makeup on " + formatShortDate(makeupDate) + "." : "Postponed due to " + reason.toLowerCase() + "; makeup TBD.";
         }
         if(state.equalsIgnoreCase("Suspended"))
-            return "Suspended.";
+        {
+            ZonedDateTime completionDate = game.resumeDateTime();
+            LocalDate date = completionDate.toLocalDate();
+            return "Suspended; to be completed on " + formatShortDate(date) + ".";
+        }
         return state + ".";
     }
 
