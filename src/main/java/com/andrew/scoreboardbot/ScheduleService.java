@@ -70,8 +70,10 @@ public class ScheduleService
         });
         if(MlbApiClient.regionalFox)
         {
-            FileUpload file = FileUpload.fromData(new File("map.png"));
-            channel.sendFiles(file).queue();
+            File file = new File("map.png");
+            FileUpload fileUpload = FileUpload.fromData(file);
+            channel.sendFiles(fileUpload).queue();
+            file.delete();
         }
     }
 
