@@ -1,7 +1,9 @@
 package com.andrew.scoreboardbot;
 
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.utils.FileUpload;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +68,11 @@ public class ScheduleService
                 e.printStackTrace();
             }
         });
+        if(MlbApiClient.regionalFox)
+        {
+            FileUpload file = FileUpload.fromData(new File("map.png"));
+            channel.sendFiles(file).queue();
+        }
     }
 
     private void sendGamesSequentially(TextChannel channel, List<ScheduleGame> games, LocalDate date, int index) throws Exception
