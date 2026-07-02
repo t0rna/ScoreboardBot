@@ -461,7 +461,12 @@ public class LiveGameMonitorService
         if(feed.linescore() == null) return "";
 
         StringBuilder sb = new StringBuilder();
-        sb.append("R  H  E\n");
+
+        sb.append("R  ");
+        if(feed.linescore().awayRuns() >= 10 || feed.linescore().homeRuns() >= 10) sb.append(" ");
+        sb.append("H  ");
+        if(feed.linescore().awayHits() >= 10 || feed.linescore().homeHits() >= 10) sb.append(" ");
+        sb.append("E\n");
         sb.append(feed.linescore().awayRuns()).append("  ")
                 .append(feed.linescore().awayHits()).append("  ")
                 .append(feed.linescore().awayErrors()).append("\n")
