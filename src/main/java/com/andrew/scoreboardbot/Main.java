@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -25,7 +26,6 @@ public class Main
         if(guild == null)
              throw new IllegalStateException("Guild not found.");
 
-        TextChannel drafting = guild.getTextChannelById(528248668990603274L);
         TextChannel gameday = guild.getTextChannelById(811348878951055383L);
 
         if(gameday == null)
@@ -34,18 +34,21 @@ public class Main
         TeamRegistry teamRegistry = new TeamRegistry(jda);
         MlbApiClient mlbApiClient = new MlbApiClient(teamRegistry);
         ScheduleFormatter formatter = new ScheduleFormatter(jda);
-        ScheduleMessageRepository messageRepository = new InMemoryScheduleMessageRepository();
-        ScheduleService scheduleService = new ScheduleService(mlbApiClient, formatter, messageRepository);
-        DailyScheduler scheduler = new DailyScheduler();
-        ScheduleMonitoringService monitoringService = new ScheduleMonitoringService(jda, mlbApiClient, formatter, messageRepository);
 
-        LiveGameRepository liveGameRepository = new InMemoryLiveGameRepository();
+        ScheduleMessageRepository scheduleRepository = new FileScheduleMessageRepository(Path.of("/home/t0rna/scoreboardbot-state/schedule-messages.json"));
+        LiveGameRepository liveGameRepository = new FileLiveGameRepository(Path.of("/home/t0rna/scoreboardbot-state/live-games.json"));
+
+        ScheduleService scheduleService = new ScheduleService(mlbApiClient, formatter, scheduleRepository);
+        DailyScheduler scheduler = new DailyScheduler();
+        ScheduleMonitoringService monitoringService = new ScheduleMonitoringService(jda, mlbApiClient, formatter, scheduleRepository);
+
+
         ThreadTitleFormatter threadTitleFormatter = new ThreadTitleFormatter();
         PlayByPlayFormatter playByPlayFormatter = new PlayByPlayFormatter();
         LiveGameMonitorService liveGameMonitorService = new LiveGameMonitorService(
                 jda,
                 mlbApiClient,
-                messageRepository,
+                scheduleRepository,
                 liveGameRepository,
                 threadTitleFormatter,
                 playByPlayFormatter
@@ -56,7 +59,7 @@ public class Main
             try
             {
                 liveGameRepository.deleteAll();
-                messageRepository.deleteAll();
+                scheduleRepository.deleteAll();
                 LocalDate date = LocalDate.now(ZoneId.of("America/Chicago"));
                 String url = "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=" + date + "&hydrate=probablePitcher,stats,team,broadcasts,game(content(media(epg)))";
                 // scheduleService.postDailySchedule(drafting, url, date);
