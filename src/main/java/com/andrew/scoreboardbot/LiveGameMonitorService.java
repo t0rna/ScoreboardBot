@@ -461,18 +461,29 @@ public class LiveGameMonitorService
         if(feed.linescore() == null) return "";
 
         StringBuilder sb = new StringBuilder();
+        boolean tenPlusRuns = feed.linescore().awayRuns() >= 10 || feed.linescore().homeRuns() >= 10;
+        boolean tenPlusHits = feed.linescore().awayHits() >= 10 || feed.linescore().homeHits() >= 10;
 
         sb.append("R  ");
-        if(feed.linescore().awayRuns() >= 10 || feed.linescore().homeRuns() >= 10) sb.append(" ");
+        if(tenPlusRuns) sb.append(" ");
         sb.append("H  ");
-        if(feed.linescore().awayHits() >= 10 || feed.linescore().homeHits() >= 10) sb.append(" ");
+        if(tenPlusHits) sb.append(" ");
         sb.append("E\n");
-        sb.append(feed.linescore().awayRuns()).append("  ")
-                .append(feed.linescore().awayHits()).append("  ")
-                .append(feed.linescore().awayErrors()).append("\n")
-                .append(feed.linescore().homeRuns()).append("  ")
-                .append(feed.linescore().homeHits()).append("  ")
-                .append(feed.linescore().homeErrors());
+        sb.append(feed.linescore().awayRuns()).append("  ");
+        if(tenPlusRuns) sb.append(" ");
+
+        sb.append(feed.linescore().awayHits()).append("  ");
+        if(tenPlusHits) sb.append(" ");
+
+        sb.append(feed.linescore().awayErrors()).append("\n")
+                .append(feed.linescore().homeRuns()).append("  ");
+
+        if(tenPlusRuns) sb.append(" ");
+
+        sb.append(feed.linescore().homeHits()).append("  ");
+        if(tenPlusHits) sb.append(" ");
+
+        sb.append(feed.linescore().homeErrors());
 
         return sb.toString();
     }
