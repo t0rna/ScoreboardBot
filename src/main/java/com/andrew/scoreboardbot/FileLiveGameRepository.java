@@ -1,7 +1,6 @@
 package com.andrew.scoreboardbot;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
@@ -9,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +23,7 @@ public class FileLiveGameRepository implements LiveGameRepository
     public FileLiveGameRepository(Path path)
     {
         this.path = path;
-        this.gson = new GsonBuilder().setPrettyPrinting().create();
+        this.gson = buildGson();
 
         load();
     }
@@ -88,6 +88,19 @@ public class FileLiveGameRepository implements LiveGameRepository
             System.err.println("Failed to persist live game states.");
             e.printStackTrace();
         }
+    }
+
+    private Gson buildGson()
+    {
+        return new GsonBuilder()
+                .registerTypeAdapter(LocalDate.class,
+                        (JsonSerializer<LocalDate>) (src, typeOfSrc, context) ->
+                                new JsonPrimitive(src.toString()))
+                .registerTypeAdapter(LocalDate.class,
+                        (JsonDeserializer<LocalDate>) (json, typeOfT, context) ->
+                                LocalDate.parse(json.getAsString()))
+                .setPrettyPrinting()
+                .create();
     }
 
 }

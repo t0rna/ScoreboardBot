@@ -35,8 +35,11 @@ public class Main
         MlbApiClient mlbApiClient = new MlbApiClient(teamRegistry);
         ScheduleFormatter formatter = new ScheduleFormatter(jda);
 
-        ScheduleMessageRepository scheduleRepository = new FileScheduleMessageRepository(Path.of("/home/t0rna/scoreboardbot-state/schedule-messages.json"));
-        LiveGameRepository liveGameRepository = new FileLiveGameRepository(Path.of("/home/t0rna/scoreboardbot-state/live-games.json"));
+        // ScheduleMessageRepository scheduleRepository = new FileScheduleMessageRepository(Path.of("/home/t0rna/scoreboardbot-state/schedule-messages.json"));
+        // LiveGameRepository liveGameRepository = new FileLiveGameRepository(Path.of("/home/t0rna/scoreboardbot-state/live-games.json"));
+
+        ScheduleMessageRepository scheduleRepository = new InMemoryScheduleMessageRepository();
+        LiveGameRepository liveGameRepository = new InMemoryLiveGameRepository();
 
         ScheduleService scheduleService = new ScheduleService(mlbApiClient, formatter, scheduleRepository);
         DailyScheduler scheduler = new DailyScheduler();

@@ -1,7 +1,6 @@
 package com.andrew.scoreboardbot;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
@@ -23,7 +22,7 @@ public class FileScheduleMessageRepository implements ScheduleMessageRepository
     public FileScheduleMessageRepository(Path path)
     {
         this.path = path;
-        this.gson = new GsonBuilder().setPrettyPrinting().create();
+        this.gson = buildGson();
         load();
     }
 
@@ -94,8 +93,16 @@ public class FileScheduleMessageRepository implements ScheduleMessageRepository
         {
             Files.createDirectories(path.getParent());
 
+            String json = gson.toJson(states);
+
+            if(json == null || json.isBlank())
+            {
+                System.err.println("Refusing to persist blank JSON to " + path);
+                return;
+            }
+
             Path temp = path.resolveSibling(path.getFileName() + ".tmp");
-            Files.writeString(temp, gson.toJson(states), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(temp, json, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         }
         catch(Exception e)
@@ -103,5 +110,18 @@ public class FileScheduleMessageRepository implements ScheduleMessageRepository
             System.err.println("Failed to persist schedule message states");
             e.printStackTrace();
         }
+    }
+
+    private Gson buildGson()
+    {
+        return new GsonBuilder()
+                .registerTypeAdapter(LocalDate.class,
+                        (JsonSerializer<LocalDate>) (src, typeOfSrc, context) ->
+                            new JsonPrimitive(src.toString()))
+                .registerTypeAdapter(LocalDate.class,
+                        (JsonDeserializer<LocalDate>) (json, typeOfT, context) ->
+                            LocalDate.parse(json.getAsString()))
+                .setPrettyPrinting()
+                .create();
     }
 }

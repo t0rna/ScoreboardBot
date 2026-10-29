@@ -25,7 +25,8 @@ public record ScheduleGame(
         LocalDate makeupDate,
         String disruptionReason,
         LocalDate originalDate,
-        String location
+        String location,
+        int venueId
 )
 {
 
@@ -58,7 +59,7 @@ public record ScheduleGame(
         return away.teamInfo().league() != home.teamInfo.league();
     }
 
-    public boolean isExhibition() { return gameType.equalsIgnoreCase("E"); }
+    public boolean isExhibition() { return gameType.equalsIgnoreCase("E") || gameType.equalsIgnoreCase("A"); }
 
     public boolean isSpringTraining() { return gameType.equalsIgnoreCase("S") || gameType.equalsIgnoreCase("E"); }
 

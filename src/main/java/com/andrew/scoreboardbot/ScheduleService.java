@@ -7,6 +7,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ScheduleService
 {
@@ -71,8 +72,13 @@ public class ScheduleService
         if(MlbApiClient.regionalFox)
         {
             File file = new File("map.png");
+            if(!file.exists())
+            {
+                channel.sendMessage("Well, I would've posted the map, but <@169563738158923777> forgot to give it to me! Shame on him!").queueAfter(20, TimeUnit.SECONDS);
+                return;
+            }
             FileUpload fileUpload = FileUpload.fromData(file);
-            channel.sendFiles(fileUpload).queue();
+            channel.sendFiles(fileUpload).queueAfter(20, TimeUnit.SECONDS);
             file.delete();
         }
     }

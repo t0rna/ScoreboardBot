@@ -93,23 +93,26 @@ public class MlbApiClient
             String disruptionReason = parseDisruptionReason(game);
             LocalDate originalDate = parseOriginalDate(game);
 
+            String location = null;
+
             int expectedVenueId = gameType.equalsIgnoreCase("S") || gameType.equalsIgnoreCase("E") ? home.getJSONObject("team").getJSONObject("springVenue").getInt("id") : home.getJSONObject("team").getJSONObject("venue").getInt("id");
             int actualVenueId = game.getJSONObject("venue").getInt("id");
 
-            String location = null;
-
-            if(expectedVenueId != actualVenueId)
+            if(!gameType.equalsIgnoreCase("A"))
             {
-                String url = "https://statsapi.mlb.com/api/v1/venues?venueIds=" + actualVenueId + "&hydrate=location";
-                String venueJson = readUrl(url);
-                JSONObject venueJsonRoot = new JSONObject(venueJson);
-                JSONArray venues = venueJsonRoot.getJSONArray("venues");
-                JSONObject venueObject = venues.getJSONObject(0);
-                JSONObject locationObject = venueObject.getJSONObject("location");
-                String country = locationObject.getString("country");
-                String city = locationObject.getString("city");
-                String state = country.equalsIgnoreCase("USA") ? locationObject.getString("stateAbbrev") : null;
-                location = "(Game in " + city + ", " + Objects.requireNonNullElse(state, country) + ")";
+                if(expectedVenueId != actualVenueId)
+                {
+                    String url = "https://statsapi.mlb.com/api/v1/venues?venueIds=" + actualVenueId + "&hydrate=location";
+                    String venueJson = readUrl(url);
+                    JSONObject venueJsonRoot = new JSONObject(venueJson);
+                    JSONArray venues = venueJsonRoot.getJSONArray("venues");
+                    JSONObject venueObject = venues.getJSONObject(0);
+                    JSONObject locationObject = venueObject.getJSONObject("location");
+                    String country = locationObject.getString("country");
+                    String city = locationObject.getString("city");
+                    String state = country.equalsIgnoreCase("USA") ? locationObject.getString("stateAbbrev") : null;
+                    location = "(Game in " + city + ", " + Objects.requireNonNullElse(state, country) + ")";
+                }
             }
 
             games.add(new ScheduleGame(
@@ -134,7 +137,8 @@ public class MlbApiClient
                     makeupDate,
                     disruptionReason,
                     originalDate,
-                    location
+                    location,
+                    actualVenueId
             ));
         }
         regionalOrNationalFox(games);

@@ -22,10 +22,24 @@ public class ScheduleFormatter
     private static final DateTimeFormatter HEADER_FORMAT = DateTimeFormatter.ofPattern("MMMM d");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
     private final JDA jda;
+    private List<String> broadcastEmoji;
 
     public ScheduleFormatter(JDA jda)
     {
         this.jda = jda;
+        broadcastEmoji = new ArrayList<>();
+        broadcastEmoji.add(jda.getEmojiById(1259969902501040129L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1259969905185525910L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1259969908872187924L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1259970903299719258L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1259969930372055071L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1259969910092861603L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1259969903889219605L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1460862224565407794L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1460862140788248677L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1460862093430624436L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1460862186850357376L).getAsMention());
+        broadcastEmoji.add(jda.getEmojiById(1460862093430624436L).getAsMention());
     }
 
     public String formatDateHeader(LocalDate date, boolean springTraining)
@@ -147,6 +161,16 @@ public class ScheduleFormatter
     {
         if(!game.home().teamInfo().isMlbTeam() || !game.away().teamInfo().isMlbTeam())
             return jda.getEmojiById(360520397235552256L).getAsMention() + " " + Text.EXHIBITION.getText();
+        if(game.venueId() == 5445)
+        {
+            // field of dreams
+            return jda.getEmojiById(1537316721986113576L).getAsMention() + " \uD835\uDC0C\uD835\uDC0B\uD835\uDC01 \uD835\uDC00\uD835\uDC13 \uD835\uDC05\uD835\uDC08\uD835\uDC04\uD835\uDC0B\uD835\uDC03 \uD835\uDC0E\uD835\uDC05 \uD835\uDC03\uD835\uDC11\uD835\uDC04\uD835\uDC00\uD835\uDC0C\uD835\uDC12";
+        }
+        if(game.venueId() == 2735)
+        {
+            // little league classic
+            return jda.getEmojiById(1538937408794534038L).getAsMention() + "\uD835\uDC0C\uD835\uDC0B\uD835\uDC01 \uD835\uDC0B\uD835\uDC08\uD835\uDC13\uD835\uDC13\uD835\uDC0B\uD835\uDC04 \uD835\uDC0B\uD835\uDC04\uD835\uDC00\uD835\uDC06\uD835\uDC14\uD835\uDC04 \uD835\uDC02\uD835\uDC0B\uD835\uDC00\uD835\uDC12\uD835\uDC12\uD835\uDC08\uD835\uDC02";
+        }
         if(game.isSpringTraining())
         {
             if(game.away().teamInfo().springLeague().equals(game.home().teamInfo().springLeague()) && game.away().teamInfo().springLeague().equals(League.GRAPEFRUIT))
@@ -159,7 +183,7 @@ public class ScheduleFormatter
         }
         if(game.gameType().equalsIgnoreCase("A"))
         {
-            return game.away().teamInfo().emoji() + " " + jda.getEmojiById(360520397235552256L).getAsMention() + " " + game.home().teamInfo().emoji() + " ᴍʟʙ ᴀʟʟ-ꜱᴛᴀʀ ɢᴀᴍᴇ";
+            return game.away().teamInfo().emoji().getAsMention() + " " + jda.getEmojiById(360520397235552256L).getAsMention() + " " + game.home().teamInfo().emoji().getAsMention() + " \uD835\uDC0C\uD835\uDC0B\uD835\uDC01 \uD835\uDC00\uD835\uDC0B\uD835\uDC0B-\uD835\uDC12\uD835\uDC13\uD835\uDC00\uD835\uDC11 \uD835\uDC06\uD835\uDC00\uD835\uDC0C\uD835\uDC04";
         }
         if (game.gameType().equalsIgnoreCase("F"))
         {
@@ -171,7 +195,7 @@ public class ScheduleFormatter
             }
             else
             {
-                result += jda.getEmojiById(344302564315234304L).getAsMention() + " " + Text.NL_WC.getText() + " ";
+                result += jda.getEmojiById(344302564315234304L).getAsMention() + Text.NL_WC.getText() + " ";
             }
             result += Text.GAME.getText() + " ";
             switch(game.getSeriesGameNumber())
@@ -231,7 +255,7 @@ public class ScheduleFormatter
             }
             else
             {
-                result += jda.getEmojiById(344302564315234304L).getAsMention() + " " + Text.ALCS.getText() + " ";
+                result += jda.getEmojiById(344302564315234304L).getAsMention() + " " + Text.NLCS.getText() + " ";
             }
             result += Text.GAME.getText() + " ";
             switch(game.getSeriesGameNumber())
@@ -335,28 +359,25 @@ public class ScheduleFormatter
 
         StringBuilder sb = new StringBuilder();
         sb.append(awayRole).append(" ")
-                .append(awayEmoji).append(" ");
+                .append(awayEmoji);
 
-        if(!game.isPostseason() || !game.isExhibition())
+        if(!game.isPostseason() && !game.isExhibition())
         {
-            sb.append(awayRecord);
+            sb.append(" ").append(awayRecord);
         }
 
         sb.append(splitSquadSuffix(away))
                 .append(" @ ")
                 .append(homeRole).append(" ")
-                .append(homeEmoji).append(" ");
+                .append(homeEmoji);
 
-        if(!game.isPostseason() || !game.isExhibition())
+        if(!game.isPostseason() && !game.isExhibition())
         {
-            sb.append(homeRecord);
+            sb.append(" ").append(homeRecord);
         }
 
         sb.append(splitSquadSuffix(home))
                 .append(" ");
-
-        String location = game.location();
-        if(location != null) sb.append(location).append(" ");
 
         if(shouldShowStartTime(game))
         {
@@ -365,6 +386,9 @@ public class ScheduleFormatter
                     .append(" (")
                     .append(discordRelativeTime(game)).append(") ");
         }
+
+        String location = game.location();
+        if(location != null) sb.append(location).append(" ");
 
         sb.append(formatDoubleheaderSuffix(game));
 
@@ -386,21 +410,51 @@ public class ScheduleFormatter
             }
             else if(game.home().wins() > game.away().wins())
             {
-                sb.append(" (")
-                        .append(game.home().teamInfo().emoji().getAsMention())
-                        .append(" leads series ")
-                        .append(game.home().wins())
-                        .append("-")
-                        .append(game.away().wins())
-                        .append(")");
+                if(game.gameType().equalsIgnoreCase("F") && game.home().wins() == 2)
+                {
+                    sb.append(" (").append(game.home().teamInfo().emoji().getAsMention()).append(" wins series 2-").append(game.away().wins()).append(")");
+                }
+                else if(game.gameType().equalsIgnoreCase("D") && game.home().wins() == 3)
+                {
+                    sb.append(" (").append(game.home().teamInfo().emoji().getAsMention()).append(" wins series 3-").append(game.away().wins()).append(")");
+                }
+                else if((game.gameType().equalsIgnoreCase("L") || game.gameType().equalsIgnoreCase("W")) && game.home().wins() == 4)
+                {
+                    sb.append(" (").append(game.home().teamInfo().emoji().getAsMention()).append(" wins series 4-").append(game.away().wins()).append(")");
+                }
+                else
+                {
+                    sb.append(" (")
+                            .append(game.home().teamInfo().emoji().getAsMention())
+                            .append(" leads series ")
+                            .append(game.home().wins())
+                            .append("-")
+                            .append(game.away().wins())
+                            .append(")");
+                }
             }
             else
             {
-                sb.append(" (")
-                        .append(game.away().teamInfo().emoji().getAsMention())
-                        .append(" leads series ")
-                        .append(game.away().wins()).append("-")
-                        .append(game.home().wins()).append(")");
+                if(game.gameType().equalsIgnoreCase("F") && game.away().wins() == 2)
+                {
+                    sb.append(" (").append(game.away().teamInfo().emoji().getAsMention()).append(" wins series 2-").append(game.home().wins()).append(")");
+                }
+                else if(game.gameType().equalsIgnoreCase("D") && game.away().wins() == 3)
+                {
+                    sb.append(" (").append(game.away().teamInfo().emoji().getAsMention()).append(" wins series 3-").append(game.home().wins()).append(")");
+                }
+                else if((game.gameType().equalsIgnoreCase("L") || game.gameType().equalsIgnoreCase("W")) && game.away().wins() == 4)
+                {
+                    sb.append(" (").append(game.away().teamInfo().emoji().getAsMention()).append(" wins series 4-").append(game.home().wins()).append(")");
+                }
+                else
+                {
+                    sb.append(" (")
+                            .append(game.away().teamInfo().emoji().getAsMention())
+                            .append(" leads series ")
+                            .append(game.away().wins()).append("-")
+                            .append(game.home().wins()).append(")");
+                }
             }
         }
 
@@ -458,7 +512,7 @@ public class ScheduleFormatter
     {
         List<String> partners = game.broadcasts().nationalTv();
         if(partners.isEmpty()) return "";
-        if(isFoxRegionalBroadcast(partners))
+        if(isFoxRegionalBroadcast(partners, game))
             return "(Regional broadcast on " + formatPartnerList(partners) + "; see map for game in your area.)";
 
         if(isSundayNightBaseball(partners))
@@ -497,8 +551,8 @@ public class ScheduleFormatter
                 break;
             }
         }
-        if(nbcsn) return "(National broadcast on " + mapNationalPartnerEmoji("nbcsn") + "; also available on " + mapNationalPartnerEmoji("peacock") + ")";
-        return "(National broadcast on " + mapNationalPartnerEmoji("nbc") + "; also available on " + mapNationalPartnerEmoji("peacock") + ")";
+        if(nbcsn) return "(National broadcast on " + jda.getEmojiById(1460862140788248677L).getAsMention() + "; also available on " + jda.getEmojiById(1460862093430624436L).getAsMention() + ")";
+        return "(National broadcast on " + jda.getEmojiById(1460862093430624436L).getAsMention() + "; also available on " + jda.getEmojiById(1460862093430624436L).getAsMention() + ")";
     }
 
     private boolean isSundayNightBaseball(List<String> partners)
@@ -541,9 +595,9 @@ public class ScheduleFormatter
         return false;
     }
 
-    private boolean isFoxRegionalBroadcast(List<String> partners)
+    private boolean isFoxRegionalBroadcast(List<String> partners, ScheduleGame game)
     {
-        if(partners.size() != 1) return false;
+        if(partners.size() != 1 || game.isPostseason()) return false;
 
         String p = partners.get(0).toLowerCase();
         return (p.equals("fox") || p.startsWith("fox ")) && MlbApiClient.regionalFox;
@@ -555,43 +609,53 @@ public class ScheduleFormatter
 
         for(String partner : partners)
         {
-            String mapped = mapNationalPartnerEmoji(partner);
+            String mapped = mapNationalPartnerEmoji(partner, formatted);
             if(mapped != null)
                 formatted.add(mapped);
         }
         return String.join(", ", formatted);
     }
 
-    private String mapNationalPartnerEmoji(String name)
+    private String mapNationalPartnerEmoji(String name, List<String> previous)
     {
         if(name == null) return "";
 
+        String result = "";
+
         String normalized = name.trim().toLowerCase();
         if(normalized.contains("abc"))
-            return jda.getEmojiById(1259969902501040129L).getAsMention();
-        if(normalized.contains("espn"))
-            return jda.getEmojiById(1259969905185525910L).getAsMention();
-        if(normalized.equals("fox") || normalized.startsWith("fox "))
-            return jda.getEmojiById(1259970903299719258L).getAsMention();
-        if(normalized.equals("fs1"))
-            return jda.getEmojiById(1259969908872187924L).getAsMention();
-        if(normalized.equals("tbs"))
-            return jda.getEmojiById(1259969930372055071L).getAsMention();
-        if(normalized.equals("mlb network") || normalized.startsWith("mlbn"))
-            return jda.getEmojiById(1259969910092861603L).getAsMention();
-        if(normalized.contains("apple"))
-            return jda.getEmojiById(1259969903889219605L).getAsMention();
-        if(normalized.contains("netflix"))
-            return jda.getEmojiById(1460862224565407794L).getAsMention();
-        if(normalized.contains("nbcsn"))
-            return jda.getEmojiById(1460862140788248677L).getAsMention();
-        if(normalized.contains("peacock") && normalized.contains("nbc"))
-            return jda.getEmojiById(1460862093430624436L).getAsMention();
-        if(normalized.contains("peacock"))
-            return jda.getEmojiById(1460862186850357376L).getAsMention();
-        if(normalized.contains("nbc"))
-            return jda.getEmojiById(1460862093430624436L).getAsMention();
-        return name;
+            result = jda.getEmojiById(1259969902501040129L).getAsMention();
+        else if(normalized.contains("espn"))
+            result = jda.getEmojiById(1259969905185525910L).getAsMention();
+        else if(normalized.contains("fs1"))
+            result = jda.getEmojiById(1259969908872187924L).getAsMention();
+        else if(normalized.contains("fox / fox one"))
+            result = jda.getEmojiById(1259970903299719258L).getAsMention();
+        else if(normalized.contains("fox one"))
+            result = "";
+        else if(normalized.startsWith("fox ") || normalized.contains("fox"))
+            result = jda.getEmojiById(1259970903299719258L).getAsMention();
+        else if(normalized.contains("tbs"))
+            result = jda.getEmojiById(1259969930372055071L).getAsMention();
+        else if(normalized.equals("mlb network") || normalized.startsWith("mlbn"))
+            result = jda.getEmojiById(1259969910092861603L).getAsMention();
+        else if(normalized.contains("apple"))
+            result = jda.getEmojiById(1259969903889219605L).getAsMention();
+        else if(normalized.contains("netflix"))
+            result = jda.getEmojiById(1460862224565407794L).getAsMention();
+        else if(normalized.contains("nbcsn"))
+            result = jda.getEmojiById(1460862140788248677L).getAsMention();
+        else if(normalized.contains("peacock") && normalized.contains("nbc"))
+            result = jda.getEmojiById(1460862093430624436L).getAsMention();
+        else if(normalized.contains("peacock"))
+            result = jda.getEmojiById(1460862186850357376L).getAsMention();
+        else if(normalized.contains("nbc"))
+            result = jda.getEmojiById(1460862093430624436L).getAsMention();
+
+        if(previous.contains(result) || result.equalsIgnoreCase(""))
+            return null;
+        else
+            return result;
     }
 
     private String mapNationalTvEmoji(String name)
